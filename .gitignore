@@ -1,0 +1,9 @@
+*.pyc
+__pycache__/
+.env
+planner.db
+*.sqlite3
+venv/
+env/
+.DS_Store
+*.log
