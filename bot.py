@@ -2,7 +2,7 @@ import os
 import logging
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 from database import Database
 
 # Enable logging
@@ -51,7 +51,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Let's get organized! 🚀"
     )
 
-async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send a help message."""
     await update.message.reply_text(
         "📋 **PlannerPro Commands**\n\n"
@@ -303,24 +303,24 @@ async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show task statistics."""
     user_id = update.effective_user.id
-    stats = db.get_stats(user_id)
+    stats_data = db.get_stats(user_id)
     
-    if stats['total'] == 0:
+    if stats_data['total'] == 0:
         await update.message.reply_text(
             "📊 You haven't created any tasks yet. Use /addtask to get started!"
         )
         return
     
-    completion_rate = (stats['completed'] / stats['total'] * 100) if stats['total'] > 0 else 0
+    completion_rate = (stats_data['completed'] / stats_data['total'] * 100) if stats_data['total'] > 0 else 0
     
     message = f"📊 **Your Task Statistics**\n\n"
-    message += f"📝 Total Tasks: {stats['total']}\n"
-    message += f"⏳ Pending: {stats['pending']}\n"
-    message += f"✅ Completed: {stats['completed']}\n"
+    message += f"📝 Total Tasks: {stats_data['total']}\n"
+    message += f"⏳ Pending: {stats_data['pending']}\n"
+    message += f"✅ Completed: {stats_data['completed']}\n"
     message += f"📈 Completion Rate: {completion_rate:.1f}%\n\n"
     
     message += "**Tasks by Category:**\n"
-    for category, count in stats['by_category'].items():
+    for category, count in stats_data['by_category'].items():
         color = CATEGORY_COLORS.get(category, '📌')
         message += f"{color} {category}: {count}\n"
     
@@ -329,11 +329,11 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     """Start the bot."""
     # Create the Application
-    application = ApplicationBuilder().token(BOT_TOKEN).build()
+    application = Application.builder().token(BOT_TOKEN).build()
     
     # Command handlers
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help))
+    application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("addtask", addtask))
     application.add_handler(CommandHandler("mytasks", mytasks))
     application.add_handler(CommandHandler("today", today))
